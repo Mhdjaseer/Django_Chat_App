@@ -7,6 +7,7 @@ This is a real-time chat application that allows users to create chat rooms, joi
 ![Screenshot (81)](https://github.com/Mhdjaseer/Django_Chat_App/assets/98450786/1be992fe-58df-46eb-b942-17099aa95ffd)
 
 ![Screenshot (83)](https://github.com/Mhdjaseer/Django_Chat_App/assets/98450786/87fc3b89-eca1-497a-a385-112234f57614)
+![Screenshot (84)](https://github.com/Mhdjaseer/Django_Chat_App/assets/98450786/37e8cb98-f0a2-476d-b138-5d802bbdd92d)
 
 
 
