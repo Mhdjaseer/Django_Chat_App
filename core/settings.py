@@ -43,11 +43,13 @@ INSTALLED_APPS = [
     'chat',
     # other app
     'widget_tweaks',
+      'defender',#to prevent web attacts 
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'defender.middleware.FailedLoginMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -140,3 +142,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'home'  
 LOGIN_URL = 'login_'
+
+LOGOUT_REDIRECT_URL = '/login/'

@@ -10,4 +10,6 @@ class NewUserForm(UserCreationForm):
         model=User
         fields=["username","email","password1","password2"]
 
-  
+
+class MessageForm(forms.Form):
+    content = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}))

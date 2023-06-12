@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -19,7 +20,11 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     likes = models.PositiveIntegerField(default=0)
     liked_by = models.ManyToManyField(get_user_model(), related_name='liked_messages')
-    created_at = models.DateTimeField(auto_now_add=True)
-
+    created_at = models.DateTimeField(default=timezone.now)
+    reported = models.BooleanField(default=False)
     def __str__(self):
         return f'Message by {self.sender.username} in {self.room.name}'
+
+    def is_deletable(self):
+        time_difference = timezone.now() - self.created_at
+        return time_difference.total_seconds() <= 600  # 10 minutes (10 minutes * 60 seconds)

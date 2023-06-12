@@ -64,6 +64,9 @@ class ChatConsumer(WebsocketConsumer):
             message_obj = Message(room=room, sender=sender, content=message, timestamp=timestamp)
             message_obj.save()
 
+            # Update the UserMessage objects for the users in the room
+           
+
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name, {
@@ -71,7 +74,8 @@ class ChatConsumer(WebsocketConsumer):
                     'message': message,
                     'username': sender_name,
                     'message_id': message_obj.id,
-                    'timestamp': timestamp
+                    'timestamp': timestamp,
+                    'notification': True  # Add a notification flag
                 }
             )
     def chat_message(self, event):
@@ -88,7 +92,13 @@ class ChatConsumer(WebsocketConsumer):
             message = event['message']
             username = event['username']
 
+            notification = False
+            if 'notification' in event and event['notification']:
+                notification = True
+            
+
             self.send(text_data=json.dumps({
                 'message': message,
-                'username': username
+                'username': username,
+                'notification': notification  # Send the notification flag to the client
             }))

@@ -4,25 +4,307 @@
 <head>
     <meta charset="utf-8"/>
     <title>Chat Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/30ce972ddf.js" crossorigin="anonymous"></script>
+    <style>
+        #notification-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ef1515;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+
+ .scrollbar-w-2::-webkit-scrollbar {
+   width: 0.25rem;
+   height: 0.25rem;
+ }
+ 
+ .scrollbar-track-blue-lighter::-webkit-scrollbar-track {
+   --bg-opacity: 1;
+   background-color: #f7fafc;
+   background-color: rgba(247, 250, 252, var(--bg-opacity));
+ }
+ 
+ .scrollbar-thumb-blue::-webkit-scrollbar-thumb {
+   --bg-opacity: 1;
+   background-color: #edf2f7;
+   background-color: rgba(237, 242, 247, var(--bg-opacity));
+ }
+ 
+ .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
+   border-radius: 0.25rem;
+ }
+
+    </style>
 </head>
 <body>
-    <div id="message-list">
-        {% for message in messages %}
-        <p><strong>{{ message.sender.username }}:</strong> {{ message.content }}
-            <br>
-            <span class="timestamp">{{ message.timestamp }}</span>
-            <br>
-            <span id="likes-{{ message.id }}">Likes: {{ message.likes }}</span>
-            <button class="like-button" data-message-id="{{ message.id }}">Like</button>
-        </p>
-        {% endfor %}
-    </div>
+  <!-- component -->
+<!-- This is an example component -->
+<div id="notification-container"></div>
+<div>
+    <nav class="bg-white border-b border-gray-200 fixed z-30 w-full">
+       <div class="px-3 py-3 lg:px-5 lg:pl-3">
+          <div class="flex items-center justify-between">
+             <div class="flex items-center justify-start">
+                <button id="toggleSidebarMobile" aria-expanded="true" aria-controls="sidebar" class="lg:hidden mr-2 text-gray-600 hover:text-gray-900 cursor-pointer p-2 hover:bg-gray-100 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 rounded">
+                   <svg id="toggleSidebarMobileHamburger" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                   </svg>
+                   <svg id="toggleSidebarMobileClose" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                   </svg>
+                </button>
+                <a href=" {% url 'index' %} " class="text-xl font-bold flex items-center lg:ml-2.5">
+                <img src="https://demo.themesberg.com/windster/images/logo.svg" class="h-6 mr-2" alt="Windster Logo">
+                <span class="self-center whitespace-nowrap">Chat App</span>
+                </a>
+                
+             </div>
+             <div class="flex items-center">
+                <button id="toggleSidebarMobileSearch" type="button" class="lg:hidden text-gray-500 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg">
+                   
+                   
+                </button>
+                
+                <a href="{% url 'logout' %}" class="hidden sm:inline-flex ml-5 text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center items-center mr-3">
+                    <i class="fa-solid fa-right-from-bracket" style="color: #ffffff;"></i>
+                   Logout
+                </a>
+             </div>
+          </div>
+       </div>
+    </nav>
+    <div class="flex overflow-hidden bg-white pt-16">
+       <aside id="sidebar" class="fixed hidden z-20 h-full top-0 left-0 pt-16 flex lg:flex flex-shrink-0 flex-col w-64 transition-width duration-75" aria-label="Sidebar">
+          <div class="relative flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white pt-0">
+             <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                <div class="flex-1 px-3 bg-white divide-y space-y-1">
+                   <ul class="space-y-2 pb-2">
+                      
+                      <li>
+                         <a href=" {% url 'index' %} " class="text-base text-gray-900 font-normal rounded-lg flex items-center p-2 hover:bg-gray-100 group">
+                            <i class="fa-solid fa-house" style="color: #1997e6;"></i>
+                            <span class="ml-3">Home</span>
+                         </a>
+                      </li>
+                      <li>
+                        <span class="ml-3 text-blue-500 font-bold"> Chat Rooms</span>
+                      </li>
+                      
+                      {% for room in joined_rooms %}
+                      
+                      <li>
+                         <a href=" {% url 'room' room_name=room.name %} "  class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group ">
+                            <i class="fa-solid fa-message" style="color: #1996f5;"></i>
+                            <span class="ml-3 flex-1 whitespace-nowrap"><strong> {{room.name|upper}}</strong></span>
+                            <span class="bg-green-200 text-gray-800 ml-3 text-sm font-medium inline-flex items-center justify-center px-2 rounded-full">New</span>
+                         </a>
+                      </li>
+                     
+                      {% empty %}
+                                   <li>No available rooms</li>
+                               {% endfor %}
+                     
+                     
+                   </ul>
+                   <div class="space-y-2 pt-2">
+                      <a href=" {% url 'logout' %} " class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2">
+                        <i class="fa-solid fa-right-from-bracket" style="color: #1a9cff;"></i>
+                         <span class="ml-4">Logout</span>
+                      </a>
+                      
+                   </div>
+                </div>
+             </div>
+          </div>
+       </aside>
+       <div class="bg-gray-900 opacity-50 hidden fixed inset-0 z-10" id="sidebarBackdrop"></div>
+       
+       <div id="main-content" class="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64">
+          <main>
+             <div class="pt-6 px-4 ">
 
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
+
+                <!-- Inside your template -->
+                   
+<div class="flex-1 p:2 sm:p-6 justify-between flex flex-col h-screen">
+    <div class="flex sm:items-center justify-between py-3 border-b-2 border-gray-200">
+       <div class="relative flex items-center space-x-4">
+          <div class="relative">
+             <span class="absolute text-green-500 right-0 bottom-0">
+                <svg width="20" height="20">
+                   <circle cx="8" cy="8" r="8" fill="currentColor"></circle>
+                </svg>
+             </span>
+             
+          <img src="https://img.freepik.com/free-vector/chat-bubble_53876-25540.jpg?w=740&t=st=1686556407~exp=1686557007~hmac=9e147e3d6ce3b40013f9e3262e6e6f50b9b31d54dc414d9141fc80d6c9225dbe" alt="" class="w-10 sm:w-16 h-10 sm:h-16 rounded-full">
+          </div>
+          <div class="flex flex-col leading-tight">
+             <div class="text-2xl mt-1 flex items-center">
+                <span class="text-gray-700 mr-3">{{room_name|upper}}</span>
+             </div>
+             <span class="text-lg text-gray-600">
+                {% if creator.username == username %}
+        You created this Room
+    {% else %}
+        {{ creator.username }} created this Room
+    {% endif %}
+            </span>
+          </div>
+       </div>
+       <div class="flex items-center space-x-2">
+          
+       </div>
+    </div>
+    <div id="message-list" class="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
+    
+
+        {% for message in messages %}
+        <div class="chat-message">
+            {% if message.sender == request.user %}
+            <div class="flex items-end justify-end  py-2">
+                
+                <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 order-1 items-end">
+                    <p class="font-semibold text-gray-400">{{ message.sender.username }}:</p>
+                    <p class="timestamp text-gray-400">{{ message.timestamp }}</p>
+                   <div>
+                    <span id="likes-{{ message.id }}">
+                        <button class="like-button" data-message-id="{{ message.id }}" title="like"><i class="fa-solid fa-thumbs-up fa-flip-horizontal"></i></button>
+                        {{ message.likes }}</span>
+                        {% if not message.reported %}
+                    <span class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-blue-600 text-white ">
+                        {{ message.content }}</span>
+                        {% else %}
+                        <span class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-red-300 text-dark ">
+                            {{ message.content }}</span>
+                        {% endif %}
+                    {% if message.sender == request.user and message.is_deletable %}
+                    
+                    <a href="{% url 'update_message' message_id=message.id %}" title="edit">
+                        <i class="fa-solid fa-file-pen" style="color: #1fe086;"></i>
+                    </a>
+                        
+                        
+                        <a href="{% url 'delete_message' message_id=message.id %}">
+                        <button type="submit" class="delete-button" title="delete"><i class="fa-solid fa-trash" style="color: #df305b;"></i></button>
+                    </a>
+                    
+                        {% endif %}
+                
+                </div>
+                  
+                </div>
+                <img src="https://images.unsplash.com/photo-1590031905470-a1a1feacbb0b?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144" alt="My profile" class="w-6 h-6 rounded-full order-2">
+             </div>
+             {% else %}
+             
+                
+             {% if not message.reported %}
+             <div class="flex items-end  py-2">
+                <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 order-2 items-start">
+                   <p class="font-semibold text-gray-400">{{ message.sender.username }}: 
+                       {% if message.sender.is_active %}
+                       <span class="text-green-800">
+                        (Active)
+                       </span>
+                        {% else %}
+                        <span class="text-red-400">
+                        (Not Active)
+                       </span>
+                       {% endif %} </p>
+                       <p class="timestamp text-gray-400">{{ message.timestamp }}</p>
+                   <div>
+                       <span class="px-4 py-2 rounded-lg inline-block rounded-bl-none bg-gray-300 text-gray-600">{{message.content}}</span>
+                       <span id="likes-{{ message.id }}">
+                           <button class="like-button" data-message-id="{{ message.id }}" title="like"><i class="fa-solid fa-thumbs-up"></i></button>
+                           {{ message.likes }}</span>
+                           <a href=" {% url 'report' message.id %} " class="report-button" title="report">
+                            <i class="fa-solid fa-flag" style="color: #df305b;"></i>
+                        </a>
+                   </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144" alt="My profile" class="w-6 h-6 rounded-full order-1">
+             </div>
+          </div>
+          <!--  -->
+                        
+                    {% endif %}
+                    {% if message.reported %}
+                    <span class="px-4 py-2 rounded-lg inline-block rounded-bl-none bg-red-300 text-gray-600">
+                        Content is removed because it has been reported.
+                    </span>
+                {% else %}
+                    
+                {% endif %}
+            
+             
+          
+       {% endif %}
+    
+       {% endfor %}
+       
+    </div>
+    <div class="border-t-2 border-gray-200 px-4 pt-4 mb-2 sm:mb-0 ">
+       <div class="relative flex">
+        <!-- <form method="post" class="w-full">
+            {% csrf_token %} -->
+            <input type="text" id="chat-message-input"  placeholder="Write your message!" class="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3">
+                <div class="absolute right-0 items-center inset-y-0 hidden sm:flex">
+            <button id="chat-message-submit" class="inline-flex items-center justify-center rounded-lg px-4 py-3 transition duration-500 ease-in-out text-white bg-blue-500 hover:bg-blue-400 focus:outline-none">Send</button>
+
+            {{ room_name|json_script:"room-name" }}
+          </div>
+        <!-- </form> -->
+         
+          
+       </div>
+    </div>
+ </div>
+ 
+                
+
+
+                   
+                   
+                </div>
+             </div>
+          </main>
+          
+          
+       </div>
+    </div>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <script src="https://demo.themesberg.com/windster/app.bundle.js"></script>
+ </div>
+
+
+
+    <!-- component -->
+ 
+ 
+ <script>
+     const el = document.getElementById('messages')
+     el.scrollTop = el.scrollHeight
+ </script>
+   
+
+
+
+   
+
+   
+   
+   <!-- good code  -->
+    
     <script>
+
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const notificationContainer = document.getElementById('notification-container');
 
         const chatSocket = new WebSocket(
             'ws://'
@@ -41,6 +323,15 @@ document.querySelectorAll('.like-button').forEach(button => {
         }));
     });
 });
+     // Function to show a notification message
+     function showNotification(message) {
+            notificationContainer.innerHTML = message;
+            notificationContainer.style.display = 'block';
+
+            setTimeout(function() {
+                // notificationContainer.style.display = 'none';
+            }, 5000);
+        }
 
    // Update the onmessage event handler to handle likes
    chatSocket.onmessage = function(e) {
@@ -54,11 +345,19 @@ document.querySelectorAll('.like-button').forEach(button => {
         const newMessage = document.createElement('p');
         newMessage.innerHTML = '<strong>' + data.username + ':</strong> ' + data.message;
         messageList.appendChild(newMessage);
-    }
 
+        // pass to parent 
+        
+    }
+    
     // Reload the page
     location.reload();
+    
+
+   
+    
 };
+
 
 
         document.querySelector('#chat-message-input').focus();
@@ -76,8 +375,15 @@ document.querySelectorAll('.like-button').forEach(button => {
             }));
             messageInputDom.value = '';
             // Reload the page
-    location.reload();
+            location.reload();
+            showNotification('message sended');
+            
         };
+        
+
+        
+        
+
     </script>
 </body>
 </html>
