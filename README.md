@@ -2,6 +2,11 @@
 # Real-Time Chat Application
 
 This is a real-time chat application that allows users to create chat rooms, join existing rooms, and communicate with other users in real-time. The application provides user authentication and authorization to ensure privacy and security. It is built using a web framework ( Django) for the server-side logic and user interface.
+![Screenshot (79)](https://github.com/Mhdjaseer/Django_Chat_App/assets/98450786/ddc755cb-cc15-4874-a431-a2dec598e4e0)
+![Screenshot (80)](https://github.com/Mhdjaseer/Django_Chat_App/assets/98450786/5093a1d4-97b6-455e-b936-3bdd1986de62)
+![Screenshot (81)](https://github.com/Mhdjaseer/Django_Chat_App/assets/98450786/1be992fe-58df-46eb-b942-17099aa95ffd)
+![Screenshot (82)](https://github.com/Mhdjaseer/Django_Chat_App/assets/98450786/a454f76b-adc4-4219-9b90-0fa238579d8f)
+
 
 
 ## Features
