@@ -8,7 +8,13 @@
 <body>
     <div id="message-list">
         {% for message in messages %}
-        <p><strong>{{ message.sender.username }}:</strong> {{ message.content }}</p>
+        <p><strong>{{ message.sender.username }}:</strong> {{ message.content }}
+            <br>
+            <span class="timestamp">{{ message.timestamp }}</span>
+            <br>
+            <span id="likes-{{ message.id }}">Likes: {{ message.likes }}</span>
+            <button class="like-button" data-message-id="{{ message.id }}">Like</button>
+        </p>
         {% endfor %}
     </div>
 
@@ -25,18 +31,35 @@
             + roomName
             + '/'
         );
+        // Add an event listener for the like button
+document.querySelectorAll('.like-button').forEach(button => {
+    button.addEventListener('click', function () {
+        const messageId = this.getAttribute('data-message-id');
+        chatSocket.send(JSON.stringify({
+            'like': true,
+            'message_id': messageId
+        }));
+    });
+});
 
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            const messageList = document.getElementById('message-list');
-            const newMessage = document.createElement('p');
-            newMessage.innerHTML = '<strong>' + data.username + ':</strong> ' + data.message;
-            messageList.appendChild(newMessage);
-        };
+   // Update the onmessage event handler to handle likes
+   chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const messageList = document.getElementById('message-list');
 
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
+    if (data.like) {
+        const likesSpan = document.getElementById(`likes-${data.message_id}`);
+        likesSpan.textContent = `Likes: ${data.likes}`;
+    } else {
+        const newMessage = document.createElement('p');
+        newMessage.innerHTML = '<strong>' + data.username + ':</strong> ' + data.message;
+        messageList.appendChild(newMessage);
+    }
+
+    // Reload the page
+    location.reload();
+};
+
 
         document.querySelector('#chat-message-input').focus();
         document.querySelector('#chat-message-input').onkeyup = function(e) {
@@ -52,6 +75,8 @@
                 'message': message
             }));
             messageInputDom.value = '';
+            // Reload the page
+    location.reload();
         };
     </script>
 </body>

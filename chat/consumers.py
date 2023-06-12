@@ -1,9 +1,9 @@
-import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from .models import Room, Message
 from django.contrib.auth import get_user_model
-
+import json
+from datetime import datetime
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -23,37 +23,72 @@ class ChatConsumer(WebsocketConsumer):
             self.room_group_name, self.channel_name
         )
 
-    # Receive message from WebSocket
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
+        if 'like' in text_data_json:
+            message_id = text_data_json['message_id']
+            message = Message.objects.get(id=message_id)
+            sender = self.scope['user']
 
-         # Get the room object
-        room = Room.objects.get(name=self.room_name)
+            if sender in message.liked_by.all():
+                message.liked_by.remove(sender)
+                message.likes -= 1
+            else:
+                message.liked_by.add(sender)
+                message.likes += 1
 
-        # Get the sender information from the scope (assuming authentication is implemented)
-        User = get_user_model()
-        sender_id = self.scope['user'].id
-        sender = User.objects.get(id=sender_id)
-        sender_name = sender.username
+            message.save()
 
-        # Create and save the message to the database
-        message_obj = Message(room=room, sender=sender, content=message)
-        message_obj.save()
+            # Send updated like count to room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name, {
+                    'type': 'chat_message',
+                    'like': True,
+                    'message_id': message_id,
+                    'likes': message.likes
+                }
+            )
+        else:
+            message = text_data_json['message']
 
-        # Send message to room group
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, {
-                "type": "chat_message",
-                "message": message,
-                "username": sender_name
-            }
-        )
+            # Get the room object
+            room = Room.objects.get(name=self.room_name)
 
-    # Receive message from room group
+            # Get the sender information
+            sender_id = self.scope['user'].id
+            sender = get_user_model().objects.get(id=sender_id)
+            sender_name = sender.username
+
+            # Create and save the message to the database
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            message_obj = Message(room=room, sender=sender, content=message, timestamp=timestamp)
+            message_obj.save()
+
+            # Send message to room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name, {
+                    'type': 'chat_message',
+                    'message': message,
+                    'username': sender_name,
+                    'message_id': message_obj.id,
+                    'timestamp': timestamp
+                }
+            )
     def chat_message(self, event):
-        message = event["message"]
-        username = event["username"]
+        if 'like' in event:
+            message_id = event['message_id']
+            message = Message.objects.get(id=message_id)
 
-        # Send message to WebSocket
-        self.send(text_data=json.dumps({"message": message, "username": username}))
+            self.send(text_data=json.dumps({
+                'like': True,
+                'message_id': message.id,
+                'likes': message.likes
+            }))
+        else:
+            message = event['message']
+            username = event['username']
+
+            self.send(text_data=json.dumps({
+                'message': message,
+                'username': username
+            }))

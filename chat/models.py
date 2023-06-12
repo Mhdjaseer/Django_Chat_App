@@ -17,7 +17,9 @@ class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    likes = models.IntegerField(default=0)
+    likes = models.PositiveIntegerField(default=0)
+    liked_by = models.ManyToManyField(get_user_model(), related_name='liked_messages')
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'Message by {self.sender.username} in {self.room.name}'
