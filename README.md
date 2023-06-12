@@ -80,6 +80,20 @@ http://127.0.0.1:8000/
 
 ```
 
+8. if your not like realoading then, and the notification is to see then inside the room.html   :
+
+```bash
+#for removing reload 
+#room.html > inside script  
+location.reload()-- remove it
+#for showing notifiaction 
+#in side onmessage funntion add
+showNotification('message recived')
+#also add inside the querySelector function 
+showNotification('message sended')
+
+```
+
 
 ## Usage
 
